@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sanket - Dark Edition</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@100;300;400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --netflix-red: #E50914;
+            --netflix-black: #141414;
+            --text-white: #fff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: var(--netflix-black);
+            color: var(--text-white);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- INTRO PAGE --- */
+        .intro-page {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            background-color: #000; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        .intro-page.fade-out { opacity: 0; pointer-events: none; }
+        .intro-page h1 { font-size: 3.5rem; font-weight: 400; margin-bottom: 3rem; }
+        .profile-container { text-align: center; cursor: pointer; }
+        .profile-img {
+            width: 150px; height: 150px; border-radius: 4px;
+            background: url('https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png') center/cover;
+            border: 3px solid transparent; transition: all 0.2s; margin-bottom: 1rem;
+        }
+        .profile-container:hover .profile-img { border-color: white; transform: scale(1.05); }
+        .profile-name { color: grey; font-size: 1.2rem; }
+        .profile-container:hover .profile-name { color: white; }
+
+        /* --- MAIN CONTENT --- */
+        .main-content { display: none; opacity: 0; transition: opacity 1s; }
+        .main-content.active { display: block; opacity: 1; }
+
+        header {
+            position: fixed; top: 0; width: 100%; padding: 20px 4%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9) 10%, transparent);
+            z-index: 1000; display: flex; align-items: center; justify-content: space-between;
+        }
+        .logo { color: var(--netflix-red); font-size: 2rem; font-weight: bold; letter-spacing: 2px; }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            position: relative; height: 85vh; width: 100%;
+            display: flex; align-items: center; padding: 0 4%; overflow: hidden;
+        }
+
+        /* Dark Cave Background */
+        .hero-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('dark background.jpg') center/cover no-repeat;
+            z-index: 0;
+            filter: grayscale(60%) contrast(120%) brightness(70%);
+            animation: slowZoom 20s infinite alternate; 
+        }
+
+        @keyframes slowZoom { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+        .hero-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to right, #000 10%, transparent 60%),
+                        linear-gradient(to top, #141414 0%, transparent 50%);
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative; z-index: 2; max-width: 700px; margin-top: 50px;
+        }
+
+        /* NEW: "Now Streaming" Tag Style */
+        .now-streaming {
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: #E50914; /* Netflix Red */
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        /* "DARK" Style Title */
+        /* CHANGED: Thinner font and wider spacing */
+        .hero-title {
+            font-family: 'Lato', sans-serif; /* The new Ultra-Thin font */
+            font-weight: 300; /* 100 is the thinnest possible setting */
+            font-size: 8rem;  /* Made it slightly bigger because thin fonts look smaller */
+            text-transform: uppercase;
+            letter-spacing: 35px; /* Huge spacing */
+            line-height: 1;
+            margin-bottom: 1rem;
+            color: #ffffff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.2); /* Soft glow */
+            margin-right: -35px; /* Fixes centering offset caused by wide spacing */
+        }
+
+        .hero-meta { display: flex; align-items: center; gap: 15px; margin-bottom: 1.5rem; font-weight: bold; font-size: 1.1rem; }
+        .match-score { color: #46d369; }
+        .rating-badge { border: 1px solid white; padding: 2px 5px; font-size: 0.8rem; }
+        .hero-desc { font-size: 1.2rem; line-height: 1.5; margin-bottom: 2rem; color: #ddd; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
+
+        .btn-container { display: flex; gap: 1rem; }
+        .btn { border: none; border-radius: 4px; padding: 0.8rem 2rem; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: transform 0.2s; }
+        .btn:hover { transform: scale(1.05); }
+        .btn-play { background: white; color: black; }
+        .btn-info { background: rgba(109, 109, 110, 0.7); color: white; }
+
+        /* --- ROWS & SLIDERS --- */
+        .row-container { padding: 2rem 0; position: relative; z-index: 10; margin-top: -5rem; }
+        .row-container + .row-container {
+             margin-top: 0; 
+        }
+        .row-header { padding-left: 4%; margin-bottom: 0.5rem; font-size: 1.5rem; font-weight: 600; color: #e5e5e5; }
+        .row-slider { position: relative; padding: 0 4%; }
+        .row-posters { display: flex; gap: 10px; overflow-x: scroll; padding: 10px 0; scroll-behavior: smooth; scrollbar-width: none; }
+        .row-posters::-webkit-scrollbar { display: none; }
+
+        .poster {
+            flex: 0 0 auto; width: 250px; height: 170px; border-radius: 4px;
+            background: #222; cursor: pointer; transition: transform 0.3s;
+            position: relative; overflow: hidden;
+        }
+        .poster:hover { transform: scale(1.1); z-index: 20; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+        
+        .poster-content {
+            width: 100%; height: 100%; padding: 1rem; display: flex;
+            flex-direction: column; justify-content: flex-end;
+            background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, transparent 100%);
+        }
+        
+        .bg-blue { background-color: #16213e; } 
+        .bg-red { background-color: #381216; } 
+        .bg-purp { background-color: #1a1a1a; }
+
+        .ep-title { font-size: 0.9rem; font-weight: bold; }
+        .ep-meta { font-size: 0.75rem; color: #ccc; margin-bottom: 5px; }
+        
+        .slider-arrow {
+            position: absolute; top: 0; bottom: 0; width: 4%;
+            background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 2rem; cursor: pointer; z-index: 20; opacity: 0; transition: opacity 0.3s;
+        }
+        .row-slider:hover .slider-arrow { opacity: 1; }
+        .arrow-left { left: 0; } .arrow-right { right: 0; }
+
+        /* --- MODAL --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 2000; display: none; justify-content: center; align-items: center; padding: 20px; }
+        .modal-overlay.open { display: flex; }
+        .modal-card { background: #181818; width: 100%; max-width: 800px; border-radius: 10px;max-height: 90vh;overflow-y: auto;position: relative; animation: popIn 0.3s ease; }
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-hero { height: 300px; background: #333; position: relative; }
+        .close-btn { position: absolute; top: 15px; right: 15px; width: 40px; height: 40px; border-radius: 50%; background: rgba(0,0,0,0.7); color: white; border: none; font-size: 1.5rem; cursor: pointer; z-index: 5; }
+        .modal-info { padding: 2rem; }
+        .modal-info h2 { font-size: 2rem; margin-bottom: 10px; }
+        .modal-stats { display: flex; gap: 10px; color: #bcbcbc; margin-bottom: 1rem; font-weight: bold; }
+        .modal-desc { line-height: 1.6; color: #ddd; font-size: 1.1rem; }
+
+        @media (max-width: 768px) {
+            .hero-title { font-size: 4rem; letter-spacing: 5px; }
+            .hero-desc { font-size: 1rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+            .slider-arrow { display: none; }
+            .profile-img { width: 150px; height: 150px; }
+        }
+        
+        .video-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 3000; /* Sit on top of everything */
+            display: none; /* Hidden by default */
+            justify-content: center; align-items: center;
+        }
+        .video-overlay.active { display: flex; }
+
+        #video-frame {
+            width: 90%; height: 90%;
+            border: none; box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        .close-video-btn {
+            position: absolute; top: 20px; right: 30px;
+            font-size: 3rem; color: white; background: none; 
+            border: none; cursor: pointer; z-index: 3001;
+            opacity: 0.7; transition: opacity 0.2s;
+        }
+        .close-video-btn:hover { opacity: 1; transform: scale(1.1); }
+    </style>
+</head>
+<body>
+
+    <div class="intro-page" id="introPage">
+        <h1>Who's watching?</h1>
+        <div class="profile-container" onclick="startApp()">
+            <div class="profile-img"></div>
+            <div class="profile-name">Sanket</div>
+        </div>
+    </div>
+    <audio id="netflix-sound" src="netflix.mp3" preload="auto"></audio>
+
+    <div class="main-content" id="mainContent">
+        
+        <header id="navbar">
+            <div class="logo">DASFLIX</div>
+            <div style="width: 35px; height: 35px; background: url('https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png') center/cover; border-radius: 4px;"></div>
+        </header>
+
+        <div class="hero">
+            <div class="hero-bg"></div>
+            <div class="hero-overlay"></div>
+            
+            <div class="hero-content">
+                <div class="now-streaming">NOW STREAMING SEASON 19</div>
+                
+                <div class="hero-title">DAS</div>
+                
+                <div class="hero-meta">
+                    <span class="match-score">98% Match</span>
+                    <span>2025</span>
+                    <span class="rating-badge">19+</span>
+                    <span>19 Seasons</span>
+                </div>
+
+                <div class="hero-desc">
+                    Witness the paradox: Knows quantum physics, forgets his student ID. Again. The walking encyclopedia who fails exams because "the system is broken." Spoiler: He's right.
+                </div>
+
+                <div class="btn-container">
+                    <button class="btn btn-play" onclick="playVideo()">
+                        <span>▶</span> Play
+                    </button>
+                    <button class="btn btn-info" onclick="openModal('intro')">
+                        <span>ⓘ</span> More Info
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row-container">
+            <h2 class="row-header">Season 19: Iconic Moments</h2>
+            <div class="row-slider" id="row1">
+                <div class="slider-arrow arrow-left" onclick="scrollRow('row1', 'left')">‹</div>
+                <div class="row-posters"></div>
+                <div class="slider-arrow arrow-right" onclick="scrollRow('row1', 'right')">›</div>
+            </div>
+        </div>
+
+        <div class="row-container">
+            <h2 class="row-header">Messages from the Survivors (Friends)</h2>
+            <div class="row-slider" id="row2">
+                <div class="slider-arrow arrow-left" onclick="scrollRow('row2', 'left')">‹</div>
+                <div class="row-posters"></div>
+                <div class="slider-arrow arrow-right" onclick="scrollRow('row2', 'right')">›</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal-overlay" id="modal" onclick="closeModal(event)">
+        <div class="modal-card">
+            <button class="close-btn" onclick="document.getElementById('modal').classList.remove('open')">×</button>
+           <img id="modal-img" src="" style="width: 100%; height: auto; display: block; max-height: 60vh; object-fit: contain; background-color: #141414;">
+            <div class="modal-info">
+                <h2 id="m-title">Title</h2>
+                <div class="modal-stats">
+                    <span class="match-score" id="m-match">99% Match</span>
+                    <span id="m-year">2025</span>
+                    <span class="rating-badge">HD</span>
+                </div>
+                <p class="modal-desc" id="m-desc">Description</p>
+                <div id="modal-actions"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="video-overlay" class="video-overlay">
+        <button class="close-video-btn" onclick="closeVideo()">×</button>
+        <iframe id="video-frame" src="" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
+    </div>
+
+    <script>
+        // Data Objects
+        const episodes = [
+            { id: 1, title: "The Laptop Incident", match: "100% Chaos",img: "laptop.jpeg", desc: "Picture this: A normal day. A tree minding its business. Sanket decides his bag needs to fly. Laptop inside said bag. RIP laptop. The tree is fine though. The laptop was not.", color: "bg-red" },
+            { id: 2, title: "Student ID Saga", match: "Critical Failure", img: "s6.jpeg",desc: "Can recite the entire syllabus backwards. Will explain concepts the professor doesn't understand. Cannot, for the life of him, remember to bring his ID. At this point, its just accepted fate", color: "bg-blue" },
+            { id: 3, title: "Jethalal Pro Max", match: "Nature's Enemy", img: "s5.jpeg",desc: "Luck level: -100. Bitten by a dog? Yes. Bitten by a monkey? Yes. SLAPPED by a monkey? Also yes. Pooped on by a bird? Obviously.", color: "bg-purp" },
+            { id: 4, title: "System Rebel", match: "Revolutionary", img:"pic.jpeg",desc: "Refuses to memorize garbage. Fights for logic in an illogical education system. We stan a rebel.", color: "bg-red" },
+            { id: 5, title: "Universal Therapist", match: "Strictly Curfewed", img:"therapist.jpeg",desc: "Will try his absolute best to help (or roast) you, but he is literally BANNED from staying awake. It's not stamina—he has the energy, just not the permission.", color: "bg-blue" },
+            { id: 6, title: "Ride or Die", match: "Loyalty ∞", img: "s2.png",desc: "Need help moving? Need money? Need someone to fight? He's there before you ask.", color: "bg-purp" },
+            { id: 7, title: "Infinite Knowledge", match: "Wiki-Brain", img:"system.jpeg",desc: "Ask him about history, science, or random trivia. Just don't ask him to memorize it for marks.", color: "bg-blue" },
+            { id: 8, title: "The Bermuda Triangle", match: "404 Not Found",img: "s3.jpeg", desc: "Your secrets? Safe with him forever. Your belongings? Think again. First, an entire ED kit disappeared.Then two files vanished right before submission. There's a bermuda triangle that follows this man around. Important item? Give it 24 hours near Sanket. It'll achieve enlightenment and transcend to another plane of existence. His laptop's there too, chilling with the tree that killed it.", color: "bg-red" },
+            { id: 9, title: "Zero Judgment", match: "Safe Space", img: "s4.jpeg",desc: "You'll be talking about the weather and suddenly you're ugly crying about your childhood trauma. Don't know how it happens. He just... makes you feel safe. No judgment, no weird looks, just 'yaarr, shitttsss' and actual (obv dont wanna admit) but good advice. Professional friend", color: "bg-purp" },
+            { id: 10, title: "Hygiene? Optional.", match: "Shower Count : Low", img: "broken.jpeg",desc: "Will spend his last rupee helping you but won't spend 10 minutes taking a shower. Priorities are... questionable. But heart? Pure gold. We're conflicted.", color: "bg-red" }
+        ];
+
+        const friendVideos = [
+            { id: 1, title: "Tetris", match: "Elite Elite",img: "elite elite.png", desc: "Click to watch the message.", color: "bg-blue", videoLink: "https://drive.google.com/file/d/1hsCfKImUQFJZzy05LXrG0ywd6lhUTe7c/preview"},
+            { id: 2, title: "Bangali Bhai", match: "Bokachoda", img: "shaunak.png",desc: "Click to watch the message", color: "bg-red", videoLink: "https://drive.google.com/file/d/1B_SNST3_qYkrHpLrjKzu8mZrSk26hq71/preview" },
+            { id: 3, title: "Secret Society", match: "Elite Gang Pt 2",img:"elite.jpeg", desc: "Click to watch the message.", color: "bg-purp", videoLink: "https://drive.google.com/file/d/1mvfLY1B2OWp5Vpll7WiRqzLz0JKAqbbV/preview" },
+            { id: 4, title: "Girliesss", match: "Slayyyyy", img: "girlies.jpeg", desc: "Click to watch the message.", color: "bg-blue", videoLink: "https://drive.google.com/file/d/1LFyQ-LCjaM64V8RyIQZhoI5hoBlm75ji/preview" },
+            { id: 5, title: "PECians", match: "Electrical Wale", img:"pecians.jpeg",desc: "Click to watch the message", color: "bg-red", videoLink: "https://drive.google.com/file/d/1Yyi1dTJXwy2H6C8YVsjkWkc6_4eNCBbk/preview" },
+            { id: 6, title: "Ansh Surrrr", match: "30% Owner", img: "ansh.jpeg",desc: "Click to watch the message", color: "bg-red", videoLink: "https://drive.google.com/file/d/11r8kCZRB2kacQH2hHeZPw22tlTfVZ61r/preview" },
+            { id: 7, title: "Best Roommatee", match: "Debayan Bhaiiii", img: "deb.jpeg",desc: "Click to watch the message", color: "bg-red", videoLink: "https://drive.google.com/file/d/1HWZXODMO5CkfwNWSbF67NBkpYmf5DfDu/preview" }
+        ];
+        
+        // --- Functions ---
+        function startApp() {
+            // Play the sound immediately on click
+            const sound = document.getElementById('netflix-sound');
+            sound.volume = 0.5; // Set volume to 50% so it's not too loud
+            sound.play();
+
+            const intro = document.getElementById('introPage');
+            const main = document.getElementById('mainContent');
+            
+            intro.classList.add('fade-out');
+            
+            // Wait slightly longer (1.5s) so the sound finishes before the intro disappears completely
+            setTimeout(() => {
+                intro.style.display = 'none';
+                main.classList.add('active');
+            }, 400); 
+        }
+        function openVideoPlayer(link) {
+            const overlay = document.getElementById('video-overlay');
+            const frame = document.getElementById('video-frame');
+
+            if (!link) {
+                alert("No video link found!");
+                return;
+            }
+
+            // CONVERT YOUTUBE LINKS AUTOMATICALLY
+            // If it's a normal YouTube link, we change it to an embed link
+            let embedLink = link;
+            if (link.includes('youtu.be') || link.includes('youtube.com')) {
+                // Extract the Video ID
+                let videoId = '';
+                if (link.includes('youtu.be')) {
+                    videoId = link.split('youtu.be/')[1];
+                } else {
+                    videoId = link.split('v=')[1].split('&')[0];
+                }
+                // Create the embed URL
+                embedLink = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&origin=${window.location.origin}`;
+            }
+            else if (link.includes('drive.google.com')) {
+                embedLink = link.replace('/view', '/preview');
+                if(embedLink.includes('?')) {
+                    embedLink = embedLink.split('?')[0]; 
+                }
+            }
+
+            frame.src = embedLink;
+            overlay.classList.add('active');
+        }
+
+        function closeVideo() {
+            const overlay = document.getElementById('video-overlay');
+            const frame = document.getElementById('video-frame');
+            
+            overlay.classList.remove('active');
+            frame.src = ""; // Stop the video from playing in background
+        }
+
+        function renderRow(rowId, data) {
+            const container = document.querySelector(`#${rowId} .row-posters`);
+            data.forEach(item => {
+                const div = document.createElement('div');
+                div.className = `poster ${item.color}`;
+                div.onclick = () => openModal(item);
+                if (item.img) {
+                    div.style.backgroundImage = `url('${item.img}')`;
+                    div.style.backgroundSize = 'cover';
+                    div.style.backgroundPosition = 'center';
+                }
+                div.innerHTML = `
+                    <div class="poster-content">
+                        <div class="ep-meta">Episode ${item.id}</div>
+                        <div class="ep-title">${item.title}</div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Initialize
+        renderRow('row1', episodes);
+        renderRow('row2', friendVideos); 
+
+        // Header Scroll Effect
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 100) nav.classList.add('scrolled');
+            else nav.classList.remove('scrolled');
+        });
+
+        // Horizontal Scroll Buttons
+        function scrollRow(rowId, direction) {
+            const container = document.querySelector(`#${rowId} .row-posters`);
+            const scrollAmount = window.innerWidth / 1.5;
+            
+            if (direction === 'left') {
+                container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+            } else {
+                container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+            }
+        }
+
+        // Modal Logic
+        function openModal(data) {
+            const modal = document.getElementById('modal');
+            const actionsDiv = document.getElementById('modal-actions');
+            const modalImg = document.getElementById('modal-img');
+            
+            // Clear previous buttons
+            actionsDiv.innerHTML = '';
+            
+            if (data === 'intro') {
+                modalImg.src = "background.jpeg";
+                document.getElementById('m-title').innerText = "About the Gadhedo";
+                document.getElementById('m-match').innerText = "98% Match";
+                document.getElementById('m-desc').innerHTML = `
+                    How do you even begin to explain this guy!!!! He's the kind of guy who'll explain the black hole theory at 2 AM but can't find his student ID the next morning. Exams? the Guy refuses to memorize because "understanding matters." CG? Totally Doobi Hui. Intelligence? Crazy Shit. Go figure.<br><br>
+        
+                    And bruhhhh, the analogies. THE WORST ANALOGIES EVER. He will use the most random comparisons to explain complex concepts and somehow it makes perfect sense. Makes zero sense but somehow you understand everything. It's a gift and a curse.<br><br>
+        
+                    Lost his laptop (threw bag at tree, long story), lost files, lost ED kit—basically if it's important, it's gone. But emotional support? Advice? Last ₹200 in his account when you need money? Always there. Priorities, I guess.<br><br>
+        
+                    Somehow, knows everything about everyone...friends with literally everyyy person ever, like how even. How does this guy end up talking to anyone anywhere!! Itna kaun extroverted hota huhhh. With him, there is no judgement (khud ki harkatein dekhi ha, kese hi karega judge)<br><br>
+        
+                    Smartest guy in the room who fails tests. Best friend you'll ever have who forgets his ID every single time. Walking contradiction who somehow makes perfect sense.<br><br>
+        
+                    That's Sanket. Chaotic, brilliant, and genuinely the best.
+                `;
+            } else {
+                if (data.img) {
+                    modalImg.src = data.img; 
+                } else {
+                     modalImg.src = "background.jpeg"; // Fallback if you forgot to add an image
+                }
+                document.getElementById('m-title').innerText = data.title;
+                document.getElementById('m-match').innerText = data.match;
+                document.getElementById('m-desc').innerText = data.desc;
+
+                // Add Watch Button if it is a video message
+                if (data.videoLink) {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn btn-play';
+                    btn.style.marginTop = '1rem';
+                    btn.style.width = '100%';
+                    btn.style.justifyContent = 'center';
+                    btn.innerHTML = '<span>▶</span> Watch Message';
+                    btn.onclick = function() {
+                        if(data.videoLink === "" || data.videoLink.includes("your-link-here")) {
+                            alert("Oops! No video link added for this person yet.");
+                        } else {
+                            // NOW WE USE OUR NEW PLAYER
+                            openVideoPlayer(data.videoLink); 
+                        }
+                    };
+                    actionsDiv.appendChild(btn);
+                }
+            }
+            
+            modal.classList.add('open');
+        }
+
+        function closeModal(e) {
+            if (e.target.id === 'modal') {
+                document.getElementById('modal').classList.remove('open');
+            }
+        }
+
+        function playVideo() {
+            // Replace this with your YouTube link or Google Drive video link!
+            alert("Insert your birthday video link in the code! (Line 416)");
+            // window.open('https://youtube.com/...', '_blank');
+        }
+    </script>
+</body>
+</html>
